@@ -17,21 +17,37 @@ namespace HangmanAssignment
 
         private void StartNewGame()
         {
-            wordToGuess = "DEVELOPER"; // Set the word to guess here
+            //The word to guess 
+            wordToGuess = "DEVELOPER";
             guessedLetters = new HashSet<char>();
-            remainingAttempts = 6; // Number of allowed incorrect guesses
+            remainingAttempts = 6; 
             UpdateDisplay();
         }
 
         private void UpdateDisplay()
         {
-            // Update the display of the guessed word
+            // Update the guessed word display
             string currentState = GetCurrentState();
-            var label = (Label)this.Content.FindByName("---------");
-            label.Text = currentState;
 
-            // Update remaining attempts or other UI elements as necessary
-            // You can add a label for remaining attempts here if needed
+            
+            foreach (var child in ((VerticalStackLayout)this.Content).Children)
+            {
+                if (child is Label label && label.Text.Contains("_"))
+                {
+                    label.Text = currentState;
+                    break;
+                }
+            }
+
+            // It updates the image to show the progress of hangman stages
+            foreach (var child in ((VerticalStackLayout)this.Content).Children)
+            {
+                if (child is Image image)
+                {
+                    image.Source = $"hang{7 - remainingAttempts}.png";
+                    break;
+                }
+            }
         }
 
         private string GetCurrentState()
@@ -40,18 +56,34 @@ namespace HangmanAssignment
             foreach (char c in wordToGuess)
             {
                 currentState += guessedLetters.Contains(c) ? c : '_';
-                currentState += " "; // Space between letters
+                // Add a space between letters
+                currentState += " "; 
             }
             return currentState.Trim();
         }
 
         private void OnGuessButtonClicked(object sender, EventArgs e)
         {
-            var entry = (Entry)this.Content.FindByName("Enter your next guess");
-            if (char.TryParse(entry.Text.ToUpper(), out char guessedLetter))
+            // Find the Entry control where the player enters their guess
+            Entry guessEntry = null;
+            foreach (var child in ((VerticalStackLayout)this.Content).Children)
+            {
+                if (child is Entry entry)
+                {
+                    guessEntry = entry;
+                    break;
+                }
+
+            }
+            //Vlaidate the player's input
+            if (guessEntry != null && !string.IsNullOrWhiteSpace(guessEntry.Text) && char.TryParse(guessEntry.Text.ToUpper(), out char guessedLetter))
             {
                 GuessLetter(guessedLetter);
-                entry.Text = ""; // Clear the entry after guessing
+                guessEntry.Text = "";
+            }
+            else
+            {
+                DisplayAlert("Invalid Input", "Please enter a single letter.", "OK");
             }
         }
 
@@ -59,7 +91,7 @@ namespace HangmanAssignment
         {
             if (guessedLetters.Contains(letter))
             {
-                // Inform the user that the letter was already guessed
+                // Informing the user that the letter was already guessed
                 DisplayAlert("Info", "You've already guessed that letter!", "OK");
                 return;
             }
@@ -98,45 +130,17 @@ namespace HangmanAssignment
 
         private async void ShowGameOverMessage()
         {
-            string message = IsWordGuessed() ?
-                $"You  Survived! You've guessed the word: {wordToGuess}" :
-                $"You Died! The word was: {wordToGuess}";
+            // Determine if player won
+            bool playerWon = IsWordGuessed();
+            string title = playerWon ? "You Survived!" : "You Died!";
+            string message = playerWon
+                ? $"You Survived! You've guessed the word: {wordToGuess}"
+                : $"The word was: {wordToGuess}";
 
-            await DisplayAlert("You Died", message, "OK");
-            StartNewGame(); // Restart the game
+            // It displays the appropriate message
+            await DisplayAlert(title, message, "OK");
+            StartNewGame(); 
         }
+
     }
 }
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
