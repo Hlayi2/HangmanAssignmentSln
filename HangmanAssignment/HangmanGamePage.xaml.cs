@@ -1,4 +1,3 @@
-
 namespace HangmanAssignment
 {
     public partial class HangmanGamePage : ContentPage
@@ -9,19 +8,41 @@ namespace HangmanAssignment
 
         public HangmanGamePage()
         {
-
             InitializeComponent();
             StartNewGame();
-
         }
 
         private void StartNewGame()
         {
-            //The word to guess 
+            // The word to guess
             wordToGuess = "DEVELOPER";
             guessedLetters = new HashSet<char>();
-            remainingAttempts = 6; 
+            remainingAttempts = 6;
+            ResetDisplay();
             UpdateDisplay();
+        }
+
+        private void ResetDisplay()
+        {
+            // Reset the guessed word label
+            foreach (var child in ((VerticalStackLayout)this.Content).Children)
+            {
+                if (child is Label label && label.Text.Contains("_"))
+                {
+                    label.Text = string.Join(" ", new string('_', wordToGuess.Length));
+                    break;
+                }
+            }
+
+            // Reset the hangman image to the initial stage
+            foreach (var child in ((VerticalStackLayout)this.Content).Children)
+            {
+                if (child is Image image)
+                {
+                    image.Source = "hang1.png";
+                    break;
+                }
+            }
         }
 
         private void UpdateDisplay()
@@ -29,7 +50,6 @@ namespace HangmanAssignment
             // Update the guessed word display
             string currentState = GetCurrentState();
 
-            
             foreach (var child in ((VerticalStackLayout)this.Content).Children)
             {
                 if (child is Label label && label.Text.Contains("_"))
@@ -57,7 +77,7 @@ namespace HangmanAssignment
             {
                 currentState += guessedLetters.Contains(c) ? c : '_';
                 // Add a space between letters
-                currentState += " "; 
+                currentState += " ";
             }
             return currentState.Trim();
         }
@@ -73,10 +93,11 @@ namespace HangmanAssignment
                     guessEntry = entry;
                     break;
                 }
-
             }
-            //Vlaidate the player's input
-            if (guessEntry != null && !string.IsNullOrWhiteSpace(guessEntry.Text) && char.TryParse(guessEntry.Text.ToUpper(), out char guessedLetter))
+
+            // Validate the player's input
+            if (guessEntry != null && !string.IsNullOrWhiteSpace(guessEntry.Text) &&
+                char.TryParse(guessEntry.Text.ToUpper(), out char guessedLetter))
             {
                 GuessLetter(guessedLetter);
                 guessEntry.Text = "";
@@ -91,7 +112,7 @@ namespace HangmanAssignment
         {
             if (guessedLetters.Contains(letter))
             {
-                // Informing the user that the letter was already guessed
+                // Inform the user that the letter was already guessed
                 DisplayAlert("Info", "You've already guessed that letter!", "OK");
                 return;
             }
@@ -103,12 +124,12 @@ namespace HangmanAssignment
                 remainingAttempts--;
             }
 
+            UpdateDisplay();
+
             if (IsGameOver())
             {
                 ShowGameOverMessage();
             }
-
-            UpdateDisplay();
         }
 
         private bool IsGameOver()
@@ -130,17 +151,16 @@ namespace HangmanAssignment
 
         private async void ShowGameOverMessage()
         {
-            // Determine if player won
+            // Determine if the player won
             bool playerWon = IsWordGuessed();
             string title = playerWon ? "You Survived!" : "You Died!";
             string message = playerWon
-                ? $"You Survived! You've guessed the word: {wordToGuess}"
+                ? $"You guessed the word: {wordToGuess} correctly!"
                 : $"The word was: {wordToGuess}";
 
-            // It displays the appropriate message
+            // Display the appropriate message and restart the game
             await DisplayAlert(title, message, "OK");
-            StartNewGame(); 
+            StartNewGame();
         }
-
     }
 }
